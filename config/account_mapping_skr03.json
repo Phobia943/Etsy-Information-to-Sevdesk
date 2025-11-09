@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Kontenzuordnung SKR03 für Etsy-sevDesk Sync",
+  "chart": "SKR03",
+  "version": "1.0.0",
+  "warning": "WICHTIG: Diese Kontenzuordnungen sind Beispiele! Bitte mit Steuerberater validieren und an Ihre Buchungslogik anpassen.",
+
+  "revenue_accounts": {
+    "description": "Erlöskonten für Etsy-Verkäufe",
+    "default": "8400",
+    "domestic_19": {
+      "account": "8400",
+      "name": "Erlöse 19% USt",
+      "description": "Inlandsverkäufe mit 19% Umsatzsteuer"
+    },
+    "domestic_7": {
+      "account": "8300",
+      "name": "Erlöse 7% USt",
+      "description": "Inlandsverkäufe mit ermäßigter Umsatzsteuer (Bücher, etc.)"
+    },
+    "oss_eu": {
+      "account": "8125",
+      "name": "Erlöse im übrigen Gemeinschaftsgebiet 19%",
+      "description": "EU-Verkäufe B2C über OSS (One-Stop-Shop)",
+      "note": "Steuersatz variiert je nach Zielland - wird in sevDesk pro Position zugeordnet"
+    },
+    "export_third_country": {
+      "account": "8120",
+      "name": "Erlöse Ausfuhrlieferungen (Drittland)",
+      "description": "Steuerfreie Ausfuhrlieferungen §4 Nr. 1a UStG",
+      "note": "Ausfuhrnachweis erforderlich"
+    },
+    "kleinunternehmer": {
+      "account": "8500",
+      "name": "Erlöse steuerfrei §19 UStG",
+      "description": "Kleinunternehmerregelung ohne Umsatzsteuer"
+    }
+  },
+
+  "expense_accounts": {
+    "description": "Aufwandskonten für Etsy-Gebühren und Kosten",
+    "etsy_transaction_fee": {
+      "account": "4980",
+      "name": "Nebenkosten des Geldverkehrs",
+      "description": "Etsy Transaktionsgebühren (ca. 5% + 0,20€)",
+      "note": "Alternative: 4945 (Geldbeschaffungskosten) je nach Buchungslogik"
+    },
+    "etsy_listing_fee": {
+      "account": "4980",
+      "name": "Nebenkosten des Geldverkehrs",
+      "description": "Etsy Einstellgebühren ($0.20 pro Listing)",
+      "note": "Alternative: 4650 (Werbekosten)"
+    },
+    "etsy_offsite_ads": {
+      "account": "4650",
+      "name": "Werbekosten",
+      "description": "Etsy Offsite Ads Gebühren (12% oder 15%)",
+      "note": "Wird von Etsy bei Verkauf automatisch abgezogen"
+    },
+    "etsy_shipping_label": {
+      "account": "4940",
+      "name": "Versandkosten",
+      "description": "Von Etsy gekaufte Versandetiketten"
+    },
+    "etsy_payment_processing": {
+      "account": "4980",
+      "name": "Nebenkosten des Geldverkehrs",
+      "description": "Etsy Payments Zahlungsabwicklungsgebühren (3% + 0,25€)",
+      "note": "Wird zusammen mit Transaction Fee abgerechnet"
+    },
+    "etsy_regulatory_fee": {
+      "account": "4945",
+      "name": "Geldbeschaffungskosten",
+      "description": "Etsy Regulatory Operating Fee (0,25€ pro Bestellung)",
+      "note": "Seit 2024 in einigen Ländern"
+    },
+    "etsy_vat_on_fees": {
+      "account": "4980",
+      "name": "Nebenkosten des Geldverkehrs",
+      "description": "Umsatzsteuer auf Etsy-Gebühren",
+      "note": "Etsy berechnet 19% oder länderspezifische USt auf Gebühren - als Vorsteuer abziehbar"
+    },
+    "currency_exchange_loss": {
+      "account": "2150",
+      "name": "Kursverluste",
+      "description": "Verluste aus Währungsumrechnung (USD/GBP → EUR)"
+    }
+  },
+
+  "asset_accounts": {
+    "description": "Aktivkonten",
+    "bank_clearing": {
+      "account": "1200",
+      "name": "Bank",
+      "description": "Bankkonto für Etsy Payouts",
+      "note": "Hier werden die Etsy-Auszahlungen gebucht"
+    },
+    "etsy_clearing": {
+      "account": "1576",
+      "name": "Geleistete Anzahlungen",
+      "description": "Verrechnungskonto für Etsy-Zahlungen",
+      "note": "Optional: Zwischenkonto für komplexe Payout-Abgleiche"
+    },
+    "currency_exchange_gain": {
+      "account": "2140",
+      "name": "Kursgewinne",
+      "description": "Gewinne aus Währungsumrechnung"
+    }
+  },
+
+  "liability_accounts": {
+    "description": "Passivkonten",
+    "vat_19": {
+      "account": "1776",
+      "name": "Umsatzsteuer 19%",
+      "description": "Umsatzsteuer-Verbindlichkeit"
+    },
+    "vat_7": {
+      "account": "1771",
+      "name": "Umsatzsteuer 7%",
+      "description": "Ermäßigte Umsatzsteuer-Verbindlichkeit"
+    },
+    "vat_oss": {
+      "account": "1783",
+      "name": "Umsatzsteuer aus im übrigen Gemeinschaftsgebiet erbrachten Leistungen",
+      "description": "OSS-Umsatzsteuer für EU-Fernverkäufe",
+      "note": "Wird quartalsweise über OSS-Portal abgeführt"
+    },
+    "input_vat": {
+      "account": "1576",
+      "name": "Abziehbare Vorsteuer",
+      "description": "Vorsteuer auf Etsy-Gebühren"
+    }
+  },
+
+  "refund_accounts": {
+    "description": "Konten für Rückerstattungen und Gutschriften",
+    "revenue_correction": {
+      "account": "8400",
+      "name": "Erlöse 19% USt (Gutschrift)",
+      "description": "Erlösminderung durch Rückerstattung - wird als Gutschrift auf Erlöskonto gebucht",
+      "note": "sevDesk bucht Gutschriften automatisch gegen das ursprüngliche Erlöskonto"
+    }
+  },
+
+  "booking_templates": {
+    "description": "Beispiel-Buchungssätze für typische Etsy-Vorgänge",
+    "examples": [
+      {
+        "description": "Etsy-Verkauf Inland 19%",
+        "transaction": "Kundenrechnung über 100€ brutto",
+        "bookings": [
+          {"account": "1200", "debit": 100.00, "description": "Etsy Payout"},
+          {"account": "8400", "credit": 84.03, "description": "Erlös netto"},
+          {"account": "1776", "credit": 15.97, "description": "USt 19%"}
+        ]
+      },
+      {
+        "description": "Etsy-Gebühren (monatlich)",
+        "transaction": "Gebührenabrechnung 50€ brutto (inkl. 19% USt)",
+        "bookings": [
+          {"account": "4980", "debit": 42.02, "description": "Gebühren netto"},
+          {"account": "1576", "debit": 7.98, "description": "Vorsteuer 19%"},
+          {"account": "1200", "credit": 50.00, "description": "Zahlung"}
+        ]
+      },
+      {
+        "description": "Etsy-Verkauf EU (OSS)",
+        "transaction": "Verkauf nach Österreich 100€ brutto (20% AT-USt)",
+        "bookings": [
+          {"account": "1200", "debit": 100.00, "description": "Payout"},
+          {"account": "8125", "credit": 83.33, "description": "Erlös netto"},
+          {"account": "1783", "credit": 16.67, "description": "OSS-USt AT 20%"}
+        ]
+      },
+      {
+        "description": "Etsy-Verkauf Drittland",
+        "transaction": "Verkauf USA 100€ (steuerfrei)",
+        "bookings": [
+          {"account": "1200", "debit": 100.00, "description": "Payout"},
+          {"account": "8120", "credit": 100.00, "description": "Ausfuhrerlös"}
+        ]
+      },
+      {
+        "description": "Rückerstattung",
+        "transaction": "Gutschrift über 100€ für zurückgesendete Ware",
+        "bookings": [
+          {"account": "8400", "debit": 84.03, "description": "Erlösminderung"},
+          {"account": "1776", "debit": 15.97, "description": "USt-Korrektur"},
+          {"account": "1200", "credit": 100.00, "description": "Rückzahlung"}
+        ],
+        "note": "sevDesk erstellt Gutschrift, die automatisch gegen Erlöse bucht"
+      }
+    ]
+  },
+
+  "notes": [
+    "Diese Konten sind Standardkonten nach SKR03. Je nach individueller Kontenplanung können Abweichungen bestehen.",
+    "Alle Buchungen müssen mit dem Steuerberater abgestimmt werden.",
+    "OSS-Umsatzsteuer wird quartalsweise über das OSS-Portal (BZSt) abgeführt.",
+    "Vorsteuer auf Etsy-Gebühren ist in Deutschland i.d.R. abziehbar (sofern keine Kleinunternehmerregelung).",
+    "Bei Währungsumrechnungen (USD/GBP → EUR) kann es zu Kursgewinnen/-verlusten kommen.",
+    "GoBD-Konformität: Alle Buchungen müssen nachvollziehbar, vollständig und richtig sein."
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tax rules for Etsy-SevDesk synchronization. WICHTIG: Diese Werte sind Beispiele - bitte mit Steuerberater validieren!",
+  "version": "1.0.0",
+  "last_updated": "2025-11-09",
+  "warning": "STEUERBERATUNGSHINWEIS: Diese Konfiguration ist KEIN Ersatz für professionelle Steuerberatung. Alle Steuersätze, OSS-Regelungen und Schwellenwerte müssen mit Ihrem Steuerberater abgestimmt werden.",
+
+  "domestic": {
+    "country": "DE",
+    "description": "Inlandslieferungen Deutschland",
+    "rules": [
+      {
+        "name": "Regelsteuersatz",
+        "rate": 19.0,
+        "code": "19",
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für 19% eintragen",
+        "applies_to": ["default", "merchandise", "digital_goods"],
+        "description": "Allgemeiner Steuersatz für Warenlieferungen"
+      },
+      {
+        "name": "Ermäßigter Steuersatz",
+        "rate": 7.0,
+        "code": "7",
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für 7% eintragen",
+        "applies_to": ["books", "food", "certain_goods"],
+        "description": "Ermäßigter Steuersatz (Bücher, Lebensmittel, etc.)"
+      },
+      {
+        "name": "Kleinunternehmer",
+        "rate": 0.0,
+        "code": "KU",
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für KU eintragen",
+        "applies_to": ["all"],
+        "description": "Kleinunternehmerregelung §19 UStG - keine USt-Ausweisung",
+        "note": "Auf Rechnung muss Hinweis gemäß §19 UStG erscheinen"
+      }
+    ]
+  },
+
+  "oss": {
+    "enabled": true,
+    "description": "One-Stop-Shop für EU-Fernverkäufe B2C",
+    "effective_from": "2021-07-01",
+    "threshold_eur": 10000,
+    "note": "OSS gilt für grenzüberschreitende B2C-Lieferungen innerhalb der EU. Schwellenwert pro Jahr beachten!",
+    "countries": {
+      "AT": {
+        "name": "Österreich",
+        "rate": 20.0,
+        "reduced_rate": 10.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS AT eintragen"
+      },
+      "BE": {
+        "name": "Belgien",
+        "rate": 21.0,
+        "reduced_rate": 6.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS BE eintragen"
+      },
+      "BG": {
+        "name": "Bulgarien",
+        "rate": 20.0,
+        "reduced_rate": 9.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS BG eintragen"
+      },
+      "CY": {
+        "name": "Zypern",
+        "rate": 19.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS CY eintragen"
+      },
+      "CZ": {
+        "name": "Tschechien",
+        "rate": 21.0,
+        "reduced_rate": 10.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS CZ eintragen"
+      },
+      "DK": {
+        "name": "Dänemark",
+        "rate": 25.0,
+        "reduced_rate": 0.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS DK eintragen",
+        "note": "Dänemark hat keinen ermäßigten Satz"
+      },
+      "EE": {
+        "name": "Estland",
+        "rate": 22.0,
+        "reduced_rate": 9.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS EE eintragen"
+      },
+      "ES": {
+        "name": "Spanien",
+        "rate": 21.0,
+        "reduced_rate": 10.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS ES eintragen"
+      },
+      "FI": {
+        "name": "Finnland",
+        "rate": 25.5,
+        "reduced_rate": 14.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS FI eintragen"
+      },
+      "FR": {
+        "name": "Frankreich",
+        "rate": 20.0,
+        "reduced_rate": 5.5,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS FR eintragen"
+      },
+      "GR": {
+        "name": "Griechenland",
+        "rate": 24.0,
+        "reduced_rate": 6.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS GR eintragen"
+      },
+      "HR": {
+        "name": "Kroatien",
+        "rate": 25.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS HR eintragen"
+      },
+      "HU": {
+        "name": "Ungarn",
+        "rate": 27.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS HU eintragen"
+      },
+      "IE": {
+        "name": "Irland",
+        "rate": 23.0,
+        "reduced_rate": 9.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS IE eintragen"
+      },
+      "IT": {
+        "name": "Italien",
+        "rate": 22.0,
+        "reduced_rate": 10.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS IT eintragen"
+      },
+      "LT": {
+        "name": "Litauen",
+        "rate": 21.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS LT eintragen"
+      },
+      "LU": {
+        "name": "Luxemburg",
+        "rate": 17.0,
+        "reduced_rate": 8.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS LU eintragen"
+      },
+      "LV": {
+        "name": "Lettland",
+        "rate": 21.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS LV eintragen"
+      },
+      "MT": {
+        "name": "Malta",
+        "rate": 18.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS MT eintragen"
+      },
+      "NL": {
+        "name": "Niederlande",
+        "rate": 21.0,
+        "reduced_rate": 9.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS NL eintragen"
+      },
+      "PL": {
+        "name": "Polen",
+        "rate": 23.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS PL eintragen"
+      },
+      "PT": {
+        "name": "Portugal",
+        "rate": 23.0,
+        "reduced_rate": 6.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS PT eintragen"
+      },
+      "RO": {
+        "name": "Rumänien",
+        "rate": 19.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS RO eintragen"
+      },
+      "SE": {
+        "name": "Schweden",
+        "rate": 25.0,
+        "reduced_rate": 6.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS SE eintragen"
+      },
+      "SI": {
+        "name": "Slowenien",
+        "rate": 22.0,
+        "reduced_rate": 5.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS SI eintragen"
+      },
+      "SK": {
+        "name": "Slowakei",
+        "rate": 20.0,
+        "reduced_rate": 10.0,
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für OSS SK eintragen"
+      }
+    }
+  },
+
+  "third_country": {
+    "description": "Ausfuhrlieferungen in Drittländer (außerhalb EU)",
+    "default_treatment": "export_tax_free",
+    "rules": [
+      {
+        "name": "Steuerfreie Ausfuhrlieferung",
+        "rate": 0.0,
+        "code": "EXPORT",
+        "sevdesk_tax_id": "TODO: sevDesk Tax ID für steuerfreie Ausfuhr eintragen",
+        "description": "§4 Nr. 1a UStG - Ausfuhrlieferungen",
+        "note": "Nachweis der Ausfuhr erforderlich (Zollbeleg, Tracking etc.)",
+        "documentation_required": true
+      }
+    ],
+    "countries": ["US", "GB", "CH", "CA", "AU", "JP", "CN", "IN", "BR", "MX", "NO", "IS"]
+  },
+
+  "special_cases": {
+    "digital_services": {
+      "description": "Elektronische Dienstleistungen (E-Books, Downloads, etc.)",
+      "note": "Unterliegen besonderen Regelungen - Ort der Leistung = Wohnsitz des Kunden",
+      "b2c_eu": "OSS applicable",
+      "b2c_third_country": "Meist im Zielland steuerpflichtig"
+    },
+    "differential_taxation": {
+      "description": "Differenzbesteuerung §25a UStG",
+      "note": "Für Wiederverkäufer von Gebrauchtgegenständen, Kunstgegenständen etc.",
+      "enabled": false,
+      "requires_documentation": true
+    }
+  },
+
+  "validation_rules": {
+    "description": "Regeln zur Validierung der korrekten Steuerbehandlung",
+    "rules": [
+      {
+        "rule": "customer_country_required",
+        "description": "Lieferland muss bekannt sein für korrekte Steuerberechnung"
+      },
+      {
+        "rule": "vat_id_check_b2b",
+        "description": "Bei B2B innerhalb EU: USt-ID prüfen (Reverse Charge)",
+        "enabled": false,
+        "note": "Etsy ist primär B2C - B2B-Geschäfte manuell prüfen"
+      },
+      {
+        "rule": "export_documentation",
+        "description": "Bei Drittland-Export: Ausfuhrnachweis archivieren",
+        "retention_years": 10
+      }
+    ]
+  }
+}

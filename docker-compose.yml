@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: etsy-sevdesk-postgres
+    environment:
+      POSTGRES_USER: etsy_sync
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
+      POSTGRES_DB: etsy_sevdesk
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=de_DE.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etsy_sync"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - etsy-sevdesk-network
+
+  # Redis (for Celery broker and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: etsy-sevdesk-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - etsy-sevdesk-network
+
+  # FastAPI Application
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: etsy-sevdesk-api
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://etsy_sync:${POSTGRES_PASSWORD:-changeme_in_production}@postgres:5432/etsy_sevdesk
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./storage:/app/storage
+      - ./config:/app/config:ro
+      - ./backups:/app/backups
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - etsy-sevdesk-network
+    command: >
+      sh -c "
+        alembic upgrade head &&
+        uvicorn app.api.main:app --host 0.0.0.0 --port 8000 --workers ${API_WORKERS:-4}
+      "
+
+  # Celery Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: etsy-sevdesk-worker
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://etsy_sync:${POSTGRES_PASSWORD:-changeme_in_production}@postgres:5432/etsy_sevdesk
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./storage:/app/storage
+      - ./config:/app/config:ro
+      - ./backups:/app/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - etsy-sevdesk-network
+    command: >
+      celery -A app.jobs.celery_app worker
+      --loglevel=${CELERY_WORKER_LOGLEVEL:-INFO}
+      --concurrency=${CELERY_WORKER_CONCURRENCY:-4}
+
+  # Celery Beat (Scheduler for periodic tasks)
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: etsy-sevdesk-beat
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://etsy_sync:${POSTGRES_PASSWORD:-changeme_in_production}@postgres:5432/etsy_sevdesk
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./storage:/app/storage
+      - ./config:/app/config:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - etsy-sevdesk-network
+    command: >
+      celery -A app.jobs.celery_app beat
+      --loglevel=${CELERY_WORKER_LOGLEVEL:-INFO}
+
+  # Flower (Celery monitoring - optional, only for development)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: etsy-sevdesk-flower
+    env_file:
+      - .env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - etsy-sevdesk-network
+    command: >
+      celery -A app.jobs.celery_app flower
+      --port=5555
+    profiles:
+      - dev
+
+networks:
+  etsy-sevdesk-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
