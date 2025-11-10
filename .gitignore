@@ -44,6 +44,9 @@ venv.bak/
 .env.local
 .env.*.local
 
+# Local configuration (CLI)
+config/local.yaml
+
 # Database
 *.db
 *.sqlite

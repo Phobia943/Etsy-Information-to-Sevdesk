@@ -1,0 +1,133 @@
+# ==============================================================================
+# Etsy-SevDesk Sync - Konfiguration Template
+# ==============================================================================
+# Diese Datei ist ein Template. Kopiere sie zu 'local.yaml' und fülle deine
+# echten Credentials ein. Die Datei local.yaml wird NICHT zu Git committed!
+#
+# Setup-Hilfe: python3 setup.py
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Etsy API Konfiguration
+# ------------------------------------------------------------------------------
+etsy:
+  # Deine Etsy API Credentials (von https://www.etsy.com/developers/your-apps)
+  client_id: "YOUR_ETSY_API_KEY"
+  client_secret: "YOUR_ETSY_CLIENT_SECRET"
+
+  # Deine Shop ID (numerisch, z.B. 12345678)
+  shop_id: "YOUR_SHOP_ID"
+
+  # OAuth2 Refresh Token (wird beim Setup generiert)
+  refresh_token: "YOUR_REFRESH_TOKEN"
+
+  # API Einstellungen (normalerweise nicht ändern)
+  api_base_url: "https://openapi.etsy.com/v3"
+  api_timeout: 30
+  rate_limit: 10
+
+# ------------------------------------------------------------------------------
+# sevDesk API Konfiguration
+# ------------------------------------------------------------------------------
+sevdesk:
+  # Dein sevDesk API Token (von sevDesk Einstellungen > Benutzer)
+  api_token: "YOUR_SEVDESK_API_TOKEN"
+
+  # API Einstellungen (normalerweise nicht ändern)
+  api_base_url: "https://my.sevdesk.de/api/v1"
+  api_timeout: 30
+  rate_limit: 5
+
+# ------------------------------------------------------------------------------
+# Steuer-Einstellungen
+# ------------------------------------------------------------------------------
+tax:
+  # Kleinunternehmer-Regelung (§19 UStG) - keine Umsatzsteuer ausweisen
+  is_small_business: false
+
+  # One-Stop-Shop für EU-Verkäufe nutzen
+  use_oss: true
+
+  # Deine Umsatzsteuer-ID (optional, nur wenn vorhanden)
+  vat_id: ""
+
+  # Standard-Steuersatz für Inland-Verkäufe
+  default_rate_domestic: 19
+
+  # Kontenrahmen (SKR03 oder SKR04)
+  account_chart: "SKR03"
+
+# ------------------------------------------------------------------------------
+# Sync-Einstellungen
+# ------------------------------------------------------------------------------
+sync:
+  # Automatisch Rechnungen in sevDesk erstellen
+  auto_create_invoices: true
+
+  # Automatisch Zahlungen zuordnen (experimental)
+  auto_match_payouts: false
+
+  # Etsy-Gebühren synchronisieren
+  sync_fees: true
+
+  # Automatisch Gutschriften für Rückerstattungen erstellen
+  auto_process_refunds: true
+
+  # Batch-Größe für API-Anfragen
+  batch_size: 100
+
+  # Start-Datum für initialen Sync (YYYY-MM-DD)
+  initial_sync_start_date: "2024-01-01"
+
+# ------------------------------------------------------------------------------
+# Datenbank
+# ------------------------------------------------------------------------------
+database:
+  # SQLite Datenbank-Pfad (relativ oder absolut)
+  url: "sqlite:///./data/etsy_sevdesk.db"
+
+# ------------------------------------------------------------------------------
+# Allgemeine Einstellungen
+# ------------------------------------------------------------------------------
+app:
+  # Name der Anwendung
+  name: "etsy-sevdesk-sync"
+
+  # Zeitzone für Datumsberechnungen
+  timezone: "Europe/Berlin"
+
+  # Basis-Währung für Buchhaltung
+  base_currency: "EUR"
+
+  # Log-Level (DEBUG, INFO, WARNING, ERROR)
+  log_level: "INFO"
+
+  # Dry-Run Modus (nur simulieren, nichts buchen)
+  dry_run: false
+
+# ------------------------------------------------------------------------------
+# Verschlüsselung
+# ------------------------------------------------------------------------------
+encryption:
+  # AES Encryption Key für sensible Daten in der Datenbank
+  # Generiere mit: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+  key: ""
+
+# ------------------------------------------------------------------------------
+# Erweiterte Einstellungen
+# ------------------------------------------------------------------------------
+advanced:
+  # Zahlungsziel in Tagen
+  payment_terms_days: 14
+
+  # Wechselkurs-Provider (ecb, fixer, manual)
+  exchange_rate_provider: "ecb"
+
+  # Maximale Wiederholungsversuche bei Fehlern
+  max_retry_attempts: 3
+
+  # Kundendaten in Logs maskieren (GDPR)
+  mask_customer_data: true
+
+  # Dokumente-Speicherpfad
+  storage_path: "./storage"
