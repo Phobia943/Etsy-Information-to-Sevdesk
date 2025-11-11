@@ -437,6 +437,309 @@ def main(
 
 
 @app.command()
+def export_csv(
+    output_dir: Path = typer.Option(
+        "exports",
+        help="Output-Verzeichnis für CSV-Dateien"
+    ),
+    days: int = typer.Option(
+        30,
+        help="Letzte N Tage exportieren"
+    ),
+    from_date: Optional[str] = typer.Option(
+        None,
+        "--from",
+        help="Start-Datum (YYYY-MM-DD)"
+    ),
+    to_date: Optional[str] = typer.Option(
+        None,
+        "--to",
+        help="End-Datum (YYYY-MM-DD)"
+    ),
+    include_fees: bool = typer.Option(
+        True,
+        help="Gebühren exportieren"
+    ),
+    skip_confirmation: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Bestätigung überspringen"
+    ),
+) -> None:
+    """
+    Exportiert Etsy-Daten als CSV-Dateien (sevDesk-kompatibel).
+
+    Keine sevDesk API nötig - CSVs können manuell importiert werden!
+
+    Die CSV-Dateien werden im deutschen Format erstellt:
+    - Semikolon-Separator (;)
+    - Komma als Dezimaltrenner
+    - Datum: DD.MM.YYYY
+    - UTF-8 mit BOM (Excel-kompatibel)
+    """
+    from decimal import Decimal
+    from app.export.csv_exporter import SevDeskCSVExporter
+    from app.db.models import Order, Refund, Fee
+
+    # Print header
+    console.print()
+    console.print(Panel.fit(
+        "[bold green]CSV-Export Modus[/bold green]\n"
+        "Exportiert Daten OHNE sevDesk API",
+        border_style="green"
+    ))
+    console.print()
+
+    try:
+        # Load configuration
+        config = load_config()
+        console.print("[green]✓[/green] Konfiguration geladen")
+
+        # Initialize database
+        db_url = config["database"]["url"]
+        init_database(db_url)
+
+        # Create database session
+        engine = create_engine(db_url, echo=False)
+        db_session = Session(engine)
+
+        # Determine date range
+        if from_date:
+            start_date = datetime.fromisoformat(from_date)
+        else:
+            start_date = datetime.now() - timedelta(days=days)
+
+        if to_date:
+            end_date = datetime.fromisoformat(to_date)
+        else:
+            end_date = datetime.now()
+
+        console.print(f"[dim]Zeitraum: {start_date.date()} bis {end_date.date()}[/dim]")
+        console.print()
+
+        # Fetch data from database
+        console.print("[bold]Lade Daten aus Datenbank...[/bold]")
+
+        # Fetch orders
+        stmt = select(Order).where(
+            Order.etsy_created_at >= start_date,
+            Order.etsy_created_at <= end_date
+        )
+        orders = db_session.execute(stmt).scalars().all()
+
+        # Fetch refunds
+        stmt = select(Refund)
+        refunds = db_session.execute(stmt).scalars().all()
+
+        # Fetch fees
+        fees = []
+        if include_fees:
+            stmt = select(Fee)
+            fees = db_session.execute(stmt).scalars().all()
+
+        # Convert to dictionaries
+        orders_data = []
+        for order in orders:
+            orders_data.append({
+                "etsy_order_id": order.etsy_order_id,
+                "raw_data": order.raw_data,
+                "buyer_country": order.buyer_country,
+                "currency": order.currency,
+                "total_amount": order.total_amount,
+                "tax_amount": order.tax_amount,
+                "etsy_created_at": order.etsy_created_at,
+            })
+
+        refunds_data = []
+        for refund in refunds:
+            refunds_data.append({
+                "etsy_refund_id": refund.etsy_refund_id,
+                "etsy_order_id": refund.etsy_order_id,
+                "raw_data": refund.raw_data,
+                "amount": refund.amount,
+                "currency": refund.currency,
+                "created_at": refund.created_at,
+            })
+
+        fees_data = []
+        for fee in fees:
+            fees_data.append({
+                "id": fee.id,
+                "period": fee.period,
+                "fee_type": fee.fee_type,
+                "amount": fee.amount,
+                "currency": fee.currency,
+            })
+
+        # Show preview
+        console.print()
+        console.print("[bold]Daten gefunden:[/bold]")
+        table = Table()
+        table.add_column("Typ", style="cyan")
+        table.add_column("Anzahl", style="green")
+        table.add_row("Bestellungen", str(len(orders_data)))
+        table.add_row("Gutschriften", str(len(refunds_data)))
+        if include_fees:
+            table.add_row("Gebühren", str(len(fees_data)))
+        console.print(table)
+        console.print()
+
+        # Show preview of first orders
+        if orders_data and len(orders_data) > 0:
+            console.print("[bold]Preview (erste 5 Bestellungen):[/bold]")
+            preview_table = Table()
+            preview_table.add_column("Bestell-ID")
+            preview_table.add_column("Datum")
+            preview_table.add_column("Brutto")
+            preview_table.add_column("Land")
+
+            for order in orders_data[:5]:
+                order_date = order["etsy_created_at"]
+                if isinstance(order_date, datetime):
+                    date_str = order_date.strftime("%d.%m.%Y")
+                else:
+                    date_str = str(order_date)
+
+                preview_table.add_row(
+                    str(order["etsy_order_id"]),
+                    date_str,
+                    f"{order['total_amount']:.2f} {order['currency']}",
+                    order["buyer_country"]
+                )
+
+            console.print(preview_table)
+            console.print()
+
+        # Confirm export
+        if not skip_confirmation:
+            if not typer.confirm("CSV-Dateien jetzt exportieren?"):
+                console.print("[yellow]Export abgebrochen[/yellow]")
+                raise typer.Exit(0)
+
+        # Create output directory with timestamp
+        timestamp = datetime.now()
+        export_dir = Path(output_dir) / timestamp.strftime("%Y-%m-%d_%H-%M")
+        export_dir.mkdir(parents=True, exist_ok=True)
+
+        console.print()
+        console.print(f"[bold]Exportiere nach:[/bold] {export_dir.absolute()}")
+        console.print()
+
+        # Initialize exporter
+        exporter = SevDeskCSVExporter(export_dir)
+
+        # Calculate statistics
+        stats = {
+            "invoices_count": len(orders_data),
+            "invoices_total": sum(Decimal(str(o["total_amount"])) for o in orders_data),
+            "credit_notes_count": len(refunds_data),
+            "credit_notes_total": sum(Decimal(str(r["amount"])) for r in refunds_data),
+            "fees_count": len(fees_data),
+            "fees_total": sum(Decimal(str(f["amount"])) for f in fees_data) if fees_data else Decimal("0"),
+        }
+
+        # Export invoices
+        if orders_data:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console
+            ) as progress:
+                task = progress.add_task("Exportiere Rechnungen...", total=None)
+                invoices_path = exporter.export_invoices(orders_data)
+                progress.update(task, completed=100, total=100)
+            console.print(f"[green]✓[/green] Rechnungen exportiert: {invoices_path.name}")
+
+        # Export credit notes
+        if refunds_data:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console
+            ) as progress:
+                task = progress.add_task("Exportiere Gutschriften...", total=None)
+                credits_path = exporter.export_credit_notes(refunds_data)
+                progress.update(task, completed=100, total=100)
+            console.print(f"[green]✓[/green] Gutschriften exportiert: {credits_path.name}")
+
+        # Export fees
+        if fees_data:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=console
+            ) as progress:
+                task = progress.add_task("Exportiere Gebühren...", total=None)
+                fees_path = exporter.export_fees(fees_data)
+                progress.update(task, completed=100, total=100)
+            console.print(f"[green]✓[/green] Gebühren exportiert: {fees_path.name}")
+
+        # Create import guide
+        console.print()
+        console.print("[dim]Erstelle Import-Anleitung...[/dim]")
+        guide_path = exporter.create_import_guide(stats, timestamp)
+        console.print(f"[green]✓[/green] Import-Anleitung: {guide_path.name}")
+
+        # Create summary
+        summary_path = exporter.create_summary(stats, timestamp)
+        console.print(f"[green]✓[/green] Zusammenfassung: {summary_path.name}")
+
+        # Show final statistics
+        console.print()
+        console.print("[bold green]Export erfolgreich abgeschlossen![/bold green]")
+        console.print()
+
+        result_table = Table(title="Export Statistik")
+        result_table.add_column("Kategorie", style="cyan")
+        result_table.add_column("Anzahl", style="green")
+        result_table.add_column("Summe", style="yellow")
+
+        result_table.add_row(
+            "Rechnungen",
+            str(stats["invoices_count"]),
+            f"{stats['invoices_total']:.2f} EUR"
+        )
+
+        if stats["credit_notes_count"] > 0:
+            result_table.add_row(
+                "Gutschriften",
+                str(stats["credit_notes_count"]),
+                f"{stats['credit_notes_total']:.2f} EUR"
+            )
+
+        if stats["fees_count"] > 0:
+            result_table.add_row(
+                "Gebühren",
+                str(stats["fees_count"]),
+                f"{stats['fees_total']:.2f} EUR"
+            )
+
+        console.print(result_table)
+        console.print()
+        console.print(f"[bold]Export-Verzeichnis:[/bold] [cyan]{export_dir.absolute()}[/cyan]")
+        console.print()
+        console.print("[yellow]Nächste Schritte:[/yellow]")
+        console.print("  1. Öffne die Datei [cyan]import_anleitung.md[/cyan]")
+        console.print("  2. Folge den Schritten zum Import in sevDesk")
+        console.print("  3. Prüfe die importierten Daten")
+        console.print()
+
+        db_session.close()
+
+    except KeyboardInterrupt:
+        console.print()
+        console.print("[yellow]Export abgebrochen[/yellow]")
+        raise typer.Exit(0)
+
+    except Exception as e:
+        console.print()
+        console.print(f"[red]FEHLER beim Export: {e}[/red]")
+        logger.exception("CSV export failed")
+        raise typer.Exit(1)
+
+
+@app.command()
 def status() -> None:
     """Zeigt den Status des letzten Syncs."""
     try:

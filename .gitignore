@@ -84,6 +84,11 @@ storage/reports/*
 !storage/documents/.gitkeep
 !storage/reports/.gitkeep
 
+# CSV Exports
+exports/
+test_exports/
+test_manual_csv_export.py
+
 # Certificates and secrets
 *.pem
 *.key

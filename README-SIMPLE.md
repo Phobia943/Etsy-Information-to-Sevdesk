@@ -106,7 +106,56 @@ Die Konfiguration wird in `config/local.yaml` gespeichert (nicht in Git).
 
 ## Verwendung
 
-### Erster Sync (Dry-Run)
+### Option 1: CSV-Export (OHNE sevDesk API)
+
+**Für Nutzer OHNE sevDesk Pro-Tarif (49€/Monat):**
+
+Der CSV-Export erstellt sevDesk-kompatible CSV-Dateien, die du manuell importieren kannst.
+
+```bash
+# CSV-Export der letzten 30 Tage
+python3 run_sync.py export-csv
+
+# CSV-Export der letzten 60 Tage
+python3 run_sync.py export-csv --days 60
+
+# CSV-Export mit Datumsbereich
+python3 run_sync.py export-csv --from 2024-01-01 --to 2024-12-31
+
+# Export ohne Gebühren
+python3 run_sync.py export-csv --include-fees=false
+
+# Export ohne Bestätigung (für Automatisierung)
+python3 run_sync.py export-csv --yes
+```
+
+**Was wird exportiert?**
+
+Der Export erstellt ein Verzeichnis `exports/YYYY-MM-DD_HH-MM/` mit:
+- `rechnungen.csv` - Alle Bestellungen als Rechnungen
+- `gutschriften.csv` - Rückerstattungen als Gutschriften
+- `gebuehren.csv` - Etsy-Gebühren als Ausgabenbelege
+- `import_anleitung.md` - Schritt-für-Schritt Import-Anleitung
+- `summary.txt` - Zusammenfassung der exportierten Daten
+
+**Import in sevDesk:**
+1. Öffne die Datei `import_anleitung.md` im Export-Verzeichnis
+2. Folge den detaillierten Schritten
+3. Importiere die CSV-Dateien über sevDesk UI
+
+**CSV-Format:**
+- UTF-8 mit BOM (Excel-kompatibel)
+- Semikolon-Separator (`;`)
+- Deutsches Zahlenformat (Komma als Dezimaltrenner)
+- Deutsches Datumsformat (DD.MM.YYYY)
+
+---
+
+### Option 2: Automatische Synchronisation (MIT sevDesk API)
+
+**Für Nutzer MIT sevDesk Pro-Tarif:**
+
+#### Erster Sync (Dry-Run)
 
 Teste erst ohne echte Buchungen:
 
@@ -116,7 +165,7 @@ python3 run_sync.py --dry-run
 
 Das zeigt dir, was synchronisiert würde, ohne tatsächlich in sevDesk zu buchen.
 
-### Produktiv-Sync starten
+#### Produktiv-Sync starten
 
 ```bash
 python3 run_sync.py
@@ -124,7 +173,7 @@ python3 run_sync.py
 
 Synchronisiert alle neuen Bestellungen seit dem letzten Sync.
 
-### Weitere Optionen
+#### Weitere Optionen
 
 ```bash
 # Nur Gebühren synchronisieren
@@ -336,6 +385,14 @@ Bei vielen Bestellungen:
 
 ## Häufige Fragen (FAQ)
 
+**Q: Brauche ich den sevDesk Pro-Tarif?**
+A: Nein! Nutze den CSV-Export (`export-csv` Command), um Daten manuell zu importieren. Die API-basierte Sync benötigt Pro.
+
+**Q: Was ist der Unterschied zwischen CSV-Export und automatischem Sync?**
+A:
+- **CSV-Export:** Keine sevDesk API nötig, manueller Import über sevDesk UI, kostenlos nutzbar
+- **Automatischer Sync:** sevDesk Pro API erforderlich (49€/Monat), vollautomatisch, keine manuelle Arbeit
+
 **Q: Kann ich mehrere Etsy-Shops synchronisieren?**
 A: Aktuell nur ein Shop pro Konfiguration. Für mehrere Shops: Separates Verzeichnis mit eigener Config.
 
@@ -343,10 +400,10 @@ A: Aktuell nur ein Shop pro Konfiguration. Für mehrere Shops: Separates Verzeic
 A: Nein, einmal erstellte Rechnungen werden nicht geändert (GoBD-konform).
 
 **Q: Was passiert bei Rückerstattungen?**
-A: Automatisch werden Gutschriften erstellt (wenn aktiviert).
+A: Automatisch werden Gutschriften erstellt (wenn aktiviert) bzw. im CSV-Export als `gutschriften.csv` bereitgestellt.
 
 **Q: Kann ich den Sync rückgängig machen?**
-A: Nein - teste immer erst mit `--dry-run`! In sevDesk musst du Rechnungen manuell löschen.
+A: Nein - teste immer erst mit `--dry-run`! In sevDesk musst du Rechnungen manuell löschen. Beim CSV-Export: Prüfe die Daten vor dem Import.
 
 **Q: Kostet das Tool etwas?**
 A: Nein, das Tool ist kostenlos. Du brauchst nur Etsy + sevDesk Accounts.
