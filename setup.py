@@ -174,9 +174,23 @@ def setup_etsy_config(config: dict) -> None:
     print_success("Etsy API konfiguriert!")
 
 
-def setup_sevdesk_config(config: dict) -> None:
-    """Konfiguriert sevDesk API Settings."""
-    print_header("sevDesk API Konfiguration")
+def setup_sevdesk_config(config: dict) -> bool:
+    """Konfiguriert sevDesk API Settings (optional)."""
+    print_header("sevDesk API Konfiguration (Optional)")
+
+    print_info("💡 Hinweis: sevDesk API ist NUR mit Buchhaltung Pro verfügbar (49€/Monat)")
+    print_info("💡 Alternative: CSV-Export (kein API Token nötig)")
+    console.print()
+
+    use_api = prompt_bool(
+        "Möchtest du sevDesk API nutzen? (Nur mit Pro-Tarif)", default=False
+    )
+
+    if not use_api:
+        print_info("✅ Kein Problem! Du kannst CSV-Export nutzen:")
+        print_info("   python3 run_sync.py export-csv --days 30")
+        config["sevdesk"]["api_token"] = ""
+        return False
 
     has_token = prompt_bool(
         "Hast du bereits einen sevDesk API Token?", default=False
@@ -200,6 +214,7 @@ def setup_sevdesk_config(config: dict) -> None:
     )
 
     print_success("sevDesk API konfiguriert!")
+    return True
 
 
 def setup_tax_config(config: dict) -> None:
@@ -366,9 +381,17 @@ def main() -> None:
     # Run setup steps
     try:
         setup_etsy_config(config)
-        setup_sevdesk_config(config)
+        use_sevdesk_api = setup_sevdesk_config(config)
         setup_tax_config(config)
-        setup_sync_config(config)
+
+        # Only configure sync settings if using sevDesk API
+        if use_sevdesk_api:
+            setup_sync_config(config)
+        else:
+            # Disable auto-sync for CSV-only mode
+            config["sync"]["auto_create_invoices"] = False
+            print_info("ℹ️  Sync-Einstellungen übersprungen (CSV-Export Modus)")
+
         setup_database_config(config)
         setup_encryption_config(config)
 
