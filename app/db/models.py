@@ -7,8 +7,7 @@ All models use SQLAlchemy 2.0 declarative base with type hints.
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Integer, Boolean, DateTime, Text, Numeric, Index
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import String, Integer, Boolean, DateTime, Text, Numeric, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, TimestampMixin
@@ -22,7 +21,7 @@ class IntegrationState(Base):
     __tablename__ = "integration_state"
 
     key: Mapped[str] = mapped_column(String(100), primary_key=True)
-    value: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    value: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
 
@@ -36,7 +35,7 @@ class Order(Base, TimestampMixin):
     __tablename__ = "orders"
 
     etsy_order_id: Mapped[str] = mapped_column(String(100), primary_key=True)
-    raw_data: Mapped[dict] = mapped_column(JSONB, nullable=False, comment="Raw Etsy API response")
+    raw_data: Mapped[dict] = mapped_column(JSON, nullable=False, comment="Raw Etsy API response")
     status: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     buyer_country: Mapped[str] = mapped_column(String(2), nullable=False, index=True)
     buyer_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -81,7 +80,7 @@ class Refund(Base, TimestampMixin):
 
     etsy_refund_id: Mapped[str] = mapped_column(String(100), primary_key=True)
     etsy_order_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
-    raw_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    raw_data: Mapped[dict] = mapped_column(JSON, nullable=False)
     sevdesk_credit_id: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     amount: Mapped[Numeric] = mapped_column(Numeric(10, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
@@ -95,7 +94,7 @@ class Payout(Base, TimestampMixin):
     __tablename__ = "payouts"
 
     etsy_payout_id: Mapped[str] = mapped_column(String(100), primary_key=True)
-    raw_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    raw_data: Mapped[dict] = mapped_column(JSON, nullable=False)
     amount: Mapped[Numeric] = mapped_column(Numeric(10, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     period_start: Mapped[datetime] = mapped_column(DateTime, nullable=False)
@@ -152,7 +151,7 @@ class AuditLog(Base):
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
     entity_id: Mapped[str] = mapped_column(String(100), nullable=False)
     action: Mapped[str] = mapped_column(String(50), nullable=False)
-    metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    meta_data: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     user: Mapped[str] = mapped_column(String(100), nullable=False, default="system")
 
     __table_args__ = (
